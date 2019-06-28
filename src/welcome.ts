@@ -1,11 +1,10 @@
-import { IndexManager } from './index-manager';
 import { fork } from 'child_process';
-import {
-    cleaningStuff,
-    makeMyMessage,
-} from './utils';
-import { branch, checkout, log, status } from "./commands";
 import * as readline from 'readline';
+
+import { IndexManager } from './index-manager';
+import { ProcessManager } from "./process-manager";
+import { branch, checkout, log, status } from "./commands";
+import { cleaningStuff, makeMyMessage } from './utils';
 
 const forked = fork('./src/fork.ts', ['-r', 'ts-node/register']);
 const cleaner = cleaningStuff(process);
@@ -13,14 +12,10 @@ const cleaner = cleaningStuff(process);
 /**
  * @todo map each choice with a specific git command and execute it
  */
-let choices = ['status', 'add', 'commit', 'branch', 'checkout', 'merge', 'rebase', 'log'];
+let choices = ['add', 'branch', 'checkout', 'commit', 'log', 'merge', 'rebase', 'status'];
+
 IndexManager.setLimit(choices.length);
-
 readline.emitKeypressEvents(process.stdin);
-
-/**
- * @todo: externalise it.
- */
 process.stdin.setEncoding('utf8');
 process.stdin.setRawMode(true);
 
@@ -29,7 +24,7 @@ const mapping = {
     checkout,
     log,
     status,
-}
+};
 
 const statusSelect = (index) => {
     cleaner.removeKeyPress();
@@ -50,7 +45,7 @@ const statusSelect = (index) => {
             mapping[choices[index]](key);
         };
     });
-}
+};
 
 export const selectAction = () => {
     cleaner.removeKeyPress();
