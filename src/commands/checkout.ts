@@ -1,52 +1,13 @@
-import { cleaningStuff, makeMyMessage, sanitizeBranches2 } from "../utils";
-import { exec, fork } from "child_process";
-import { IndexManager } from "../index-manager";
-import { selectAction } from "../welcome";
+import { execSync } from 'child_process';
 
-const forked = fork("./src/fork.ts");
-const cleaner = cleaningStuff(process);
-let output: any[], error;
+import { sanitizeBranches2 } from "../utils"
 
-export const checkout = () => {
-    cleaner.removeKeyPress();
-    cleaner.cleanScreen();
+const message = "this is checkout, where to ?";
 
-    exec(`git branch`, (err, stdout, stderr) => {
-        if (err) {
-            console.error(`exec error: ${err}`);
-            return;
-        }
+// ts-ignore-next-line
+const localBranches = sanitizeBranches2(execSync('git branch', { encoding: 'utf8' }));
 
-        if (stdout) {
-            cleaner.cleanScreen();
-            output = sanitizeBranches2(stdout);
-            output.unshift('new-branch');
-
-            IndexManager.resetValue().setLimit(output.length);
-
-            forked.send({ message: `This is checkout, where to ?`, data: makeMyMessage(output, IndexManager.getValue()), execute: false });
-
-            process.stdin.on('keypress', (str, key) => {
-                if ((key.ctrl && key.name === 'c') || key.name === 'escape') {
-                    cleaner.cleanScreen();
-                    cleaner.exitProc();
-                } else {
-                    if (key.name === 'up') {
-                        cleaner.cleanScreen();
-                        forked.send({ message: "This is checkout, where to ?", data: makeMyMessage(output, IndexManager.unshiftValue().getValue()), execute: false });
-                    } else if (key.name === 'down') {
-                        cleaner.cleanScreen();
-                        forked.send({ message: "This is checkout, where to ?", data: makeMyMessage(output, IndexManager.shiftValue().getValue()), execute: false });
-                    } else if (key.name === 'return') {
-
-                    } else if (key.name === 'g') {
-                        cleaner.cleanScreen();
-                        selectAction();
-                    };
-                };
-            });
-        };
-
-        if (stderr) console.log(stderr);
-    });
+export default {
+    message,
+    data: localBranches,
 }

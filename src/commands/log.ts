@@ -1,36 +1,11 @@
-import { cleaningStuff } from "../utils";
-import { exec, fork } from "child_process";
-import { selectAction } from "../welcome";
+import { execSync } from 'child_process';
 
-const forked = fork("./src/fork.ts");
-const cleaner = cleaningStuff(process);
+const message = "This is log";
 
-export const log = () => {
-    cleaner.removeKeyPress();
-    cleaner.cleanScreen();
+// ts-ignore-next-line
+const data = execSync('git log', { encoding: 'utf8' });
 
-    exec(`git log`, (err, stdout, stderr) => {
-        if (err) {
-            console.error(`exec error: ${err}`);
-            return;
-        }
-
-        if (stdout) {
-            forked.send({ message: `This is log`, data: stdout, execute: false });
-
-            process.stdin.on('keypress', (str, key) => {
-                if ((key.ctrl && key.name === 'c') || key.name === 'escape') {
-                    cleaner.cleanScreen();
-                    cleaner.exitProc();
-                } else {
-                    if (key.name === 'g') {
-                        cleaner.cleanScreen();
-                        selectAction();
-                    };
-                };
-            });
-        };
-
-        if (stderr) console.log(stderr);
-    });
+export default {
+    message,
+    data,
 }
